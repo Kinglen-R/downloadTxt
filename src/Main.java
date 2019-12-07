@@ -16,7 +16,7 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println("***本系统可以下载全本小说，也可下载指定章节***");
-        System.out.println("***小说地址可从www.biqugex.com中获取***");
+        System.out.println("***小说地址可从www.biqugex.com或者www.bxwx.org中获取***");
         System.out.println("***小说地址获取方式：进入网站，搜索想要看的书名，进入小说章节页面，将此时浏览器中额地址复制过来即可***");
         Scanner sc = new Scanner(System.in);
         System.out.print("请输入小说地址：");
@@ -46,13 +46,21 @@ public class Main {
                 int n2 = -1;
                 if (i * 500 <= list.size())
                     n2 = i * 500;
-                MyThread thread = new MyThread(list, name, n1, n2);
-                thread.start();
+                if(url.substring(12,16).equals("bxwx")){
+                    BXWXThread thread = new BXWXThread(list, name, n1, n2);
+                    thread.start();
+                }else if(url.substring(12,16).equals("biqi")) {
+                    BQGThread thread = new BQGThread(list, name, n1, n2);
+                    thread.start();
+                }
             }
 
         }
     }
 
+    /**
+     * www.biqiugex.com;www.bxwx.org都可以
+     */
     public static List<String> getAllChapterUrls(String address) {
         Document document;
         // 连接当前的网页
@@ -75,7 +83,39 @@ public class Main {
         return null;
     }
 
-    public static List<String> getContent(String address){
+    public static void NoveltoTxt(String url,String name,int n1, int n2){
+        List<String> chapterList = getAllChapterUrls(url);
+        int i = 1;
+        if(n2 != -1)
+            chapterList = chapterList.subList(n1, n2);
+        else
+            chapterList = chapterList.subList(n1, chapterList.size());
+        for (String data : chapterList) {
+            List<String> contentList = new ArrayList<String>();
+            if(url.substring(12,16).equals("bxwx"))
+                contentList = getContentBXWX(data);
+            else if(url.substring(12, 16).equals("biqi"))
+                contentList = getContentBQG(data);
+            else;
+            BufferedWriter out = null;
+            try {
+                out = new BufferedWriter(new FileWriter(new File("D:" + File.separator + name +n1+ "_" + n2 + ".txt"),true));
+                for(String d:contentList)
+                    out.write("    " + d+"\r\n");
+                out.flush();
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println(i++);
+
+        }
+    }
+
+    /**
+     * 笔趣阁小说格式
+     */
+    public static List<String> getContentBQG(String address){
         Document document;
         // 连接当前的网页
         try {
@@ -97,27 +137,26 @@ public class Main {
         return null;
     }
 
-    public static void NoveltoTxt(String url,String name,int n1, int n2){
-        List<String> chapterList = getAllChapterUrls(url);
-        int i = 1;
-        if(n2 != -1)
-            chapterList = chapterList.subList(n1, n2);
-        else
-            chapterList = chapterList.subList(n1, chapterList.size());
-        for (String data : chapterList) {
-            List<String> contentList = getContent(data);
-            BufferedWriter out = null;
-            try {
-                out = new BufferedWriter(new FileWriter(new File("D:" + File.separator + name +n1+ "_" + n2 + ".txt"),true));
-                for(String d:contentList)
-                    out.write("    " + d+"\r\n");
-                out.flush();
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+    /**
+     * 笔下文学小说格式
+     */
+    public static List<String> getContentBXWX(String address){
+        Document document;
+        // 连接当前的网页
+        try {
+            // 连接当前的网页
+            document = Jsoup.connect(address).header("User-Agent","Mozilla/5.0 (Windows NT 6.1; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0").get();
+            // 获取a标签属性为href的内容
+            Element link = document.selectFirst("div[id=content]");
+            Elements list = link.select("p");
+            List<String> stringList = new ArrayList<String>();
+            for (int i = 0;i<list.size()-1;i++) {
+                stringList.add(list.get(i).text());
             }
-            System.out.println(i++);
-
+            return stringList;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return null;
     }
 }

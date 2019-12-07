@@ -15,14 +15,14 @@ import java.util.List;
  * @author: rjl
  * @date: 2019/11/30
  */
-public class MyThread extends Thread{
+public class BQGThread extends Thread{
 
     private List<String> url;
     private String name;
     private int n1;
     private int n2;
 
-    public MyThread(List<String> list,String name,int n1,int n2){
+    public BQGThread(List<String> list,String name,int n1,int n2){
         this.url = list;
         this.name = name;
         this.n1 = n1;

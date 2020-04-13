@@ -92,7 +92,7 @@ public class Main {
             chapterList = chapterList.subList(n1, chapterList.size());
         for (String data : chapterList) {
             List<String> contentList = new ArrayList<String>();
-            if(url.substring(12,16).equals("bxwx"))
+            if(url.substring(11,15).equals("bxwx"))
                 contentList = getContentBXWX(data);
             else if(url.substring(12, 16).equals("biqi"))
                 contentList = getContentBQG(data);
